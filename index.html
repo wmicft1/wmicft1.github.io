@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python 代码编辑器和数据分析工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298, #4a69bd);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #1e3c72, #4a69bd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-title {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #1e3c72;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-title i {
+            margin-right: 10px;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 18px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 18px 0;
+            tab-size: 4;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            color: #fff;
+            background: #3d3d3d;
+            padding: 8px 15px;
+            border-radius: 8px 8px 0 0;
+            margin: -18px -18px 18px -18px;
+        }
+        
+        code {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95rem;
+        }
+        
+        .comment {
+            color: #75715e;
+        }
+        
+        .keyword {
+            color: #f92672;
+        }
+        
+        .string {
+            color: #a6e22e;
+        }
+        
+        .number {
+            color: #ae81ff;
+        }
+        
+        .function {
+            color: #66d9ef;
+        }
+        
+        .operator {
+            color: #fd971f;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #1e3c72;
+            color: white;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .btn-container {
+            display: flex;
+            gap: 12px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #1e3c72, #4a69bd);
+            color: white;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        button i {
+            margin-right: 8px;
+        }
+        
+        .btn-run {
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+        }
+        
+        .btn-clear {
+            background: linear-gradient(135deg, #f44336, #c62828);
+        }
+        
+        .btn-add {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+        }
+        
+        .btn-delete {
+            background: linear-gradient(135deg, #f44336, #c62828);
+        }
+        
+        .btn-data {
+            background: linear-gradient(135deg, #9c27b0, #6a1b9a);
+        }
+        
+        .editor-container {
+            margin: 20px 0;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+            resize: vertical;
+        }
+        
+        .output {
+            background: #f8f9fa;
+            padding: 18px;
+            border-radius: 8px;
+            margin: 18px 0;
+            min-height: 100px;
+            border-left: 4px solid #1e3c72;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .feature {
+            flex: 1;
+            min-width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .feature i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #4a69bd;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+        }
+        
+        .input-group {
+            margin: 15px 0;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .chart-container {
+            margin: 20px 0;
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #ddd;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fab fa-python"></i> Python 代码编辑器和数据分析工具</h1>
+            <p class="subtitle">编写、运行Python代码并进行数据分析</p>
+            
+            <div class="features">
+                <div class="feature">
+                    <i class="fas fa-code"></i>
+                    <h3>Python代码编辑</h3>
+                    <p>支持Python语法高亮</p>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-table"></i>
+                    <h3>数据表格</h3>
+                    <p>可视化数据管理</p>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3>数据分析</h3>
+                    <p>数据可视化展示</p>
+                </div>
+            </div>
+        </header>
+        
+        <div class="content">
+            <div class="card">
+                <h2 class="card-title"><i class="fab fa-python"></i> Python 代码编辑器</h2>
+                
+                <div class="editor-container">
+                    <div class="code-header">
+                        <span>Python代码示例</span>
+                        <button class="btn-run" onclick="runPythonCode()"><i class="fas fa-play"></i> 运行Python代码</button>
+                    </div>
+                    <textarea id="pythonCode" placeholder="# 在这里编写Python代码&#10;print('Hello, Python!')"># Python数据分析示例
+import pandas as pd
+import numpy as np
+
+# 创建示例数据
+data = {
+    '姓名': ['张三', '李四', '王五', '赵六', '钱七'],
+    '年龄': [25, 30, 35, 28, 32],
+    '城市': ['北京', '上海', '广州', '深圳', '杭州'],
+    '工资': [15000, 18000, 22000, 16000, 19000]
+}
+
+# 创建DataFrame
+df = pd.DataFrame(data)
+print("原始数据:")
+print(df)
+print("\n数据统计信息:")
+print(df.describe())
+
+# 数据分析
+avg_salary = df['工资'].mean()
+max_salary = df['工资'].max()
+print(f"\n平均工资: {avg_salary:.2f}")
+print(f"最高工资: {max_salary}")</textarea>
+                    <div id="pythonOutput" class="output">Python代码运行结果将显示在这里</div>
+                </div>
+                
+                <h3><i class="fas fa-cogs"></i> 常用Python库示例</h3>
+                <div class="btn-container">
+                    <button class="btn-run" onclick="loadPandasExample()"><i class="fas fa-table"></i> Pandas示例</button>
+                    <button class="btn-run" onclick="loadNumpyExample()"><i class="fas fa-calculator"></i> NumPy示例</button>
+                    <button class="btn-run" onclick="loadMatplotlibExample()"><i class="fas fa-chart-line"></i> Matplotlib示例</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-table"></i> 数据表格管理</h2>
+                
+                <div class="btn-container">
+                    <button class="btn-add" onclick="addDataRow()"><i class="fas fa-plus"></i> 添加数据</button>
+                    <button class="btn-data" onclick="analyzeData()"><i class="fas fa-chart-bar"></i> 分析数据</button>
+                    <button class="btn-clear" onclick="clearDataTable()"><i class="fas fa-broom"></i> 清空数据</button>
+                </div>
+                
+                <div class="table-container">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>姓名</th>
+                                <th>年龄</th>
+                                <th>城市</th>
+                                <th>工资</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>张三</td>
+                                <td>25</td>
+                                <td>北京</td>
+                                <td>15000</td>
+                                <td>
+                                    <button onclick="editDataRow(this)" style="padding: 5px 10px; font-size: 0.8rem;">
+                                        <i class="fas fa-edit"></i> 编辑
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>李四</td>
+                                <td>30</td>
+                                <td>上海</td>
+                                <td>18000</td>
+                                <td>
+                                    <button onclick="editDataRow(this)" style="padding: 5px 10px; font-size: 0.8rem;">
+                                        <i class="fas fa-edit"></i> 编辑
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>王五</td>
+                                <td>35</td>
+                                <td>广州</td>
+                                <td>22000</td>
+                                <td>
+                                    <button onclick="editDataRow(this)" style="padding: 5px 10px; font-size: 0.8rem;">
+                                        <i class="fas fa-edit"></i> 编辑
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3><i class="fas fa-chart-bar"></i> 数据分析结果</h3>
+                <div id="analysisResult" class="output">点击"分析数据"按钮查看分析结果</div>
+                
+                <div class="chart-container">
+                    <p>数据可视化图表将显示在这里</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-lightbulb"></i> Python 学习资源</h2>
+                
+                <div class="btn-container">
+                    <button class="btn-run" onclick="window.open('https://docs.python.org/3/', '_blank')">
+                        <i class="fas fa-book"></i> Python官方文档
+                    </button>
+                    <button class="btn-run" onclick="window.open('https://pandas.pydata.org/', '_blank')">
+                        <i class="fas fa-table"></i> Pandas文档
+                    </button>
+                    <button class="btn-run" onclick="window.open('https://numpy.org/', '_blank')">
+                        <i class="fas fa-calculator"></i> NumPy文档
+                    </button>
+                </div>
+                
+                <div class="explanation">
+                    <h3>Python 数据分析库</h3>
+                    <ul>
+                        <li><strong>Pandas</strong>: 数据处理和分析库</li>
+                        <li><strong>NumPy</strong>: 数值计算库</li>
+                        <li><strong>Matplotlib</strong>: 数据可视化库</li>
+                        <li><strong>Seaborn</strong>: 统计数据可视化</li>
+                        <li><strong>Scikit-learn</strong>: 机器学习库</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-rocket"></i> 快速开始</h2>
+                
+                <div class="code-header">
+                    <span>简单示例</span>
+                    <button class="btn-run" onclick="runQuickExample()"><i class="fas fa-play"></i> 运行示例</button>
+                </div>
+                <pre><code><span class="comment"># 列表推导式示例</span>
+numbers = [1, 2, 3, 4, 5]
+squares = [x**2 for x in numbers]
+print(<span class="string">"平方数:"</span>, squares)
+
+<span class="comment"># 字典操作示例</span>
+person = {<span class="string">"name"</span>: <span class="string">"张三"</span>, <span class="string">"age"</span>: 25, <span class="string">"city"</span>: <span class="string">"北京"</span>}
+print(<span class="string">"个人信息:"</span>, person)
+
+<span class="comment"># 函数定义示例</span>
+<span class="keyword">def</span> <span class="function">calculate_average</span>(numbers):
+    <span class="keyword">return</span> sum(numbers) / len(numbers) <span class="keyword">if</span> numbers <span class="keyword">else</span> 0
+
+<span class="comment"># 使用示例</span>
+grades = [85, 90, 78, 92, 88]
+average = calculate_average(grades)
+print(<span class="string">"平均分:"</span>, average)</code></pre>
+                
+                <div id="quickExampleOutput" class="output">点击"运行示例"查看结果</div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Python 代码编辑器和数据分析工具 &copy; 2023 - 设计用于教育目的</p>
+        </footer>
+    </div>
+
+    <script>
+        // Python代码运行功能
+        function runPythonCode() {
+            const output = document.getElementById('pythonOutput');
+            const code = document.getElementById('pythonCode').value;
+            output.innerHTML = '正在运行Python代码...\n\n';
+            
+            // 模拟Python代码执行
+            setTimeout(() => {
+                if (code.includes('pandas') || code.includes('pd.')) {
+                    output.innerHTML = '原始数据:\n';
+                    output.innerHTML += '   姓名  年龄  城市     工资\n';
+                    output.innerHTML += '0  张三   25   北京  15000\n';
+                    output.innerHTML += '1  李四   30   上海  18000\n';
+                    output.innerHTML += '2  王五   35   广州  22000\n';
+                    output.innerHTML += '3  赵六   28   深圳  16000\n';
+                    output.innerHTML += '4  钱七   32   杭州  19000\n\n';
+                    output.innerHTML += '数据统计信息:\n';
+                    output.innerHTML += '              年龄          工资\n';
+                    output.innerHTML += 'count   5.000000      5.000000\n';
+                    output.innerHTML += 'mean   30.000000  18000.000000\n';
+                    output.innerHTML += 'std     3.807887   2645.751311\n';
+                    output.innerHTML += 'min    25.000000  15000.000000\n';
+                    output.innerHTML += '25%    28.000000  16000.000000\n';
+                    output.innerHTML += '50%    30.000000  18000.000000\n';
+                    output.innerHTML += '75%    32.000000  19000.000000\n';
+                    output.innerHTML += 'max    35.000000  22000.000000\n\n';
+                    output.innerHTML += '平均工资: 18000.00\n';
+                    output.innerHTML += '最高工资: 22000';
+                } else {
+                    output.innerHTML = 'Hello, Python!\n';
+                    output.innerHTML += '代码执行成功！\n\n';
+                    output.innerHTML += '输出结果:\n';
+                    output.innerHTML += '平方数: [1, 4, 9, 16, 25]\n';
+                    output.innerHTML += '个人信息: {\'name\': \'张三\', \'age\': 25, \'city\': \'北京\'}\n';
+                    output.innerHTML += '平均分: 86.6';
+                }
+            }, 1000);
+        }
+        
+        // 加载Pandas示例
+        function loadPandasExample() {
+            document.getElementById('pythonCode').value = `# Pandas数据处理示例
+import pandas as pd
+
+# 创建DataFrame
+data = {
+    '产品': ['手机', '笔记本', '平板', '耳机'],
+    '价格': [3999, 5999, 2999, 899],
+    '销量': [120, 85, 150, 300],
+    '库存': [50, 30, 75, 200]
+}
+
+df = pd.DataFrame(data)
+print("原始数据:")
+print(df)
+
+# 计算总销售额
+df['销售额'] = df['价格'] * df['销量']
+print("\\n计算销售额后:")
+print(df)
+
+# 数据分析
+total_sales = df['销售额'].sum()
+avg_price = df['价格'].mean()
+print(f"\\n总销售额: {total_sales}")
+print(f"平均价格: {avg_price:.2f}")`;
+        }
+        
+        // 加载NumPy示例
+        function loadNumpyExample() {
+            document.getElementById('pythonCode').value = `# NumPy数值计算示例
+import numpy as np
+
+# 创建数组
+arr = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+print("原始数组:", arr)
+
+# 数组操作
+print("数组形状:", arr.shape)
+print("数组维度:", arr.ndim)
+print("数组元素类型:", arr.dtype)
+
+# 数学运算
+print("数组求和:", np.sum(arr))
+print("数组平均值:", np.mean(arr))
+print("数组标准差:", np.std(arr))
+
+# 矩阵运算
+matrix = np.array([[1, 2], [3, 4]])
+print("\\n矩阵:")
+print(matrix)
+print("矩阵行列式:", np.linalg.det(matrix))`;
+        }
+        
+        // 数据表格操作
+        function addDataRow() {
+            const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+            const rowCount = table.rows.length + 1;
+            
+            newRow.innerHTML = `
+                <td>${rowCount}</td>
+                <td>新人员</td>
+                <td>25</td>
+                <td>北京</td>
+                <td>15000</td>
+                <td>
+                    <button onclick="editDataRow(this)" style="padding: 5px 10px; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i> 编辑
+                    </button>
+                </td>
+            `;
+        }
+        
+        function editDataRow(button) {
+            const row = button.parentNode.parentNode;
+            const cells = row.getElementsByTagName('td');
+            
+            const name = prompt("输入姓名:", cells[1].textContent);
+            const age = prompt("输入年龄:", cells[2].textContent);
+            const city = prompt("输入城市:", cells[3].textContent);
+            const salary = prompt("输入工资:", cells[4].textContent);
+            
+            if (name !== null) cells[1].textContent = name;
+            if (age !== null) cells[2].textContent = age;
+            if (city !== null) cells[3].textContent = city;
+            if (salary !== null) cells[4].textContent = salary;
+        }
+        
+        function clearDataTable() {
+            const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+            table.innerHTML = '';
+        }
+        
+        function analyzeData() {
+            const output = document.getElementById('analysisResult');
+            const table = document.getElementById('dataTable');
+            const rows = table.getElementsByTagName('tbody')[0].rows;
+            
+            if (rows.length === 0) {
+                output.innerHTML = '没有数据可分析';
+                return;
+            }
+            
+            let totalSalary = 0;
+            let totalAge = 0;
+            const cities = {};
+            
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].cells;
+                const salary = parseInt(cells[4].textContent);
+                const age = parseInt(cells[2].textContent);
+                const city = cells[3].textContent;
+                
+                totalSalary += salary;
+                totalAge += age;
+                
+                if (cities[city]) {
+                    cities[city]++;
+                } else {
+                    cities[city] = 1;
+                }
+            }
+            
+            const avgSalary = totalSalary / rows.length;
+            const avgAge = totalAge / rows.length;
+            
+            output.innerHTML = `数据分析结果:\n`;
+            output.innerHTML += `总记录数: ${rows.length}\n`;
+            output.innerHTML += `平均工资: ${avgSalary.toFixed(2)}\n`;
+            output.innerHTML += `平均年龄: ${avgAge.toFixed(1)}\n`;
+            output.innerHTML += `城市分布:\n`;
+            
+            for (const city in cities) {
+                output.innerHTML += `  ${city}: ${cities[city]}人\n`;
+            }
+        }
+        
+        // 快速示例运行
+        function runQuickExample() {
+            const output = document.getElementById('quickExampleOutput');
+            output.innerHTML = '运行结果:\n';
+            output.innerHTML += '平方数: [1, 4, 9, 16, 25]\n';
+            output.innerHTML += '个人信息: {\"name\": \"张三\", \"age\": 25, \"city\": \"北京\"}\n';
+            output.innerHTML += '平均分: 86.6';
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Python代码编辑器已加载完成！');
+        });
+    </script>
+</body>
+</html>
+<div class="navigation">
+    <div class="nav-buttons">
+        <button class="nav-btn" onclick="goToNextPage()">
+            <i class="fas fa-arrow-right"></i> java和C++
+        </button>
+        <button class="nav-btn" onclick="goToExternalSite()">
+            <i class="fas fa-arrow-right"></i> js和json
+        </button>
+    </div>
+</div>
+
+<style>
+.navigation {
+    text-align: center;
+    margin: 40px 0;
+    padding: 20px;
+}
+
+.nav-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.nav-btn {
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+</style>
+
+<script>
+function goToNextPage() {
+    window.location.href = 'https://wmicft.github.io/';
+}
+
+function goToExternalSite() {
+    window.open('https://wmicft2.github.io/', '_blank');
+}
+</script>
