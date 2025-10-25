@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>密钥管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .control-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .panel h2 {
+            margin-bottom: 20px;
+            color: #4CAF50;
+            font-size: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .key-list {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .key-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .key-item.used {
+            border-left-color: #ff9800;
+        }
+        
+        .key-item.expired {
+            border-left-color: #f44336;
+        }
+        
+        .key-code {
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .key-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #4CAF50;
+        }
+        
+        .key-status.used {
+            background: #ff9800;
+        }
+        
+        .key-status.expired {
+            background: #f44336;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+        
+        .export-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔑 应用密钥管理系统</h1>
+            <p>生成、管理和验证应用访问密钥</p >
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div>总密钥数</div>
+                <div class="stat-number" id="totalKeys">0</div>
+                <div>个</div>
+            </div>
+            <div class="stat-card">
+                <div>已使用</div>
+                <div class="stat-number" id="usedKeys">0</div>
+                <div>个</div>
+            </div>
+            <div class="stat-card">
+                <div>可用密钥</div>
+                <div class="stat-number" id="availableKeys">0</div>
+                <div>个</div>
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <div class="panel">
+                <h2>🎯 生成新密钥</h2>
+                <div class="input-group">
+                    <label>密钥类型</label>
+                    <select id="keyType">
+                        <option value="single">单次使用</option>
+                        <option value="permanent">永久有效</option>
+                        <option value="trial">试用版 (7天)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>生成数量</label>
+                    <input type="number" id="keyCount" value="1" min="1" max="100">
+                </div>
+                <div class="input-group">
+                    <label>备注信息</label>
+                    <input type="text" id="keyNote" placeholder="例如：客户A购买">
+                </div>
+                <button class="btn btn-primary" onclick="generateKeys()">生成密钥</button>
+            </div>
+            
+            <div class="panel">
+                <h2>🔍 验证密钥</h2>
+                <div class="input-group">
+                    <label>输入密钥验证</label>
+                    <input type="text" id="verifyKey" placeholder="输入密钥进行验证">
+                </div>
+                <button class="btn btn-secondary" onclick="verifyKey()">验证密钥</button>
+                
+                <div style="margin-top: 20px;">
+                    <h3>API 验证地址</h3>
+                    <p style="font-size: 12px; margin-top: 10px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px;">
+                        https://your-domain.com/verify?key=<span style="color: #4CAF50">{密钥}</span>
+                    </p >
+                </div>
+            </div>
+        </div>
+        
+        <div class="key-list">
+            <h2>📋 密钥列表</h2>
+            <div id="keysContainer">
+                <!-- 密钥列表会动态生成在这里 -->
+                <div style="text-align: center; padding: 40px; color: #ccc;">
+                    暂无密钥，请先生成密钥
+                </div>
+            </div>
+            
+            <div class="export-section">
+                <button class="btn btn-secondary" onclick="exportKeys()">导出密钥列表</button>
+                <button class="btn btn-danger" onclick="clearAllKeys()">清空所有密钥</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 从本地存储加载密钥数据
+        let keys = JSON.parse(localStorage.getItem('appKeys') || '[]');
+        
+        // 初始化页面
+        function initPage() {
+            updateStats();
+            renderKeyList();
+        }
+        
+        // 更新统计信息
+        function updateStats() {
+            const total = keys.length;
+            const used = keys.filter(key => key.used).length;
+            const available = total - used;
+            
+            document.getElementById('totalKeys').textContent = total;
+            document.getElementById('usedKeys').textContent = used;
+            document.getElementById('availableKeys').textContent = available;
+        }
+        
+        // 生成随机密钥
+        function generateKey() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let key = '';
+            
+            // 生成格式：XXXX-XXXX-XXXX-XXXX
+            for (let i = 0; i < 16; i++) {
+                if (i > 0 && i % 4 === 0) {
+                    key += '-';
+                }
+                key += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            return key;
+        }
+        
+        // 生成新密钥
+        function generateKeys() {
+            const keyType = document.getElementById('keyType').value;
+            const keyCount = parseInt(document.getElementById('keyCount').value);
+            const note = document.getElementById('keyNote').value;
+            
+            for (let i = 0; i < keyCount; i++) {
+                const newKey = {
+                    key: generateKey(),
+                    type: keyType,
+                    used: false,
+                    createdAt: new Date().toISOString(),
+                    note: note || '系统生成'
+                };
+                
+                keys.push(newKey);
+            }
+            
+            // 保存到本地存储
+            localStorage.setItem('appKeys', JSON.stringify(keys));
+            
+            // 更新界面
+            updateStats();
+            renderKeyList();
+            
+            alert(`成功生成 ${keyCount} 个密钥！`);
+            
+            // 清空输入
+            document.getElementById('keyNote').value = '';
+        }
+        
+        // 验证密钥
+        function verifyKey() {
+            const inputKey = document.getElementById('verifyKey').value.trim();
+            
+            if (!inputKey) {
+                alert('请输入要验证的密钥');
+                return;
+            }
+            
+            const keyObj = keys.find(k => k.key === inputKey);
+            
+            if (!keyObj) {
+                alert('❌ 密钥不存在');
+                return;
+            }
+            
+            if (keyObj.used) {
+                alert('❌ 密钥已被使用');
+                return;
+            }
+            
+            // 检查是否过期（如果是试用版）
+            if (keyObj.type === 'trial') {
+                const created = new Date(keyObj.createdAt);
+                const now = new Date();
+                const diffDays = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+                
+                if (diffDays > 7) {
+                    alert('❌ 试用密钥已过期');
+                    return;
+                }
+            }
+            
+            alert('✅ 密钥有效！');
+        }
+        
+        // 渲染密钥列表
+        function renderKeyList() {
+            const container = document.getElementById('keysContainer');
+            
+            if (keys.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ccc;">暂无密钥，请先生成密钥</div>';
+                return;
+            }
+            
+            // 按创建时间倒序排列
+            const sortedKeys = [...keys].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            container.innerHTML = sortedKeys.map(key => `
+                <div class="key-item ${key.used ? 'used' : ''}">
+                    <div>
+                        <div class="key-code">${key.key}</div>
+                        <div style="font-size: 12px; color: #ccc; margin-top: 5px;">
+                            类型: ${getKeyTypeText(key.type)} | 
+                            创建: ${formatDate(key.createdAt)} |
+                            备注: ${key.note}
+                        </div>
+                    </div>
+                    <div>
+                        <span class="key-status ${key.used ? 'used' : ''}">${key.used ? '已使用' : '未使用'}</span>
+                        <button class="btn btn-danger" style="padding: 5px 10px; margin-left: 10px;" onclick="deleteKey('${key.key}')">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 获取密钥类型文本
+        function getKeyTypeText(type) {
+            const types = {
+                'single': '单次使用',
+                'permanent': '永久有效',
+                'trial': '试用版'
+            };
+            return types[type] || type;
+        }
+        
+        // 格式化日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+        }
+        
+        // 删除密钥
+        function deleteKey(key) {
+            if (confirm('确定要删除这个密钥吗？')) {
+                keys = keys.filter(k => k.key !== key);
+                localStorage.setItem('appKeys', JSON.stringify(keys));
+                updateStats();
+                renderKeyList();
+            }
+        }
+        
+        // 导出密钥列表
+        function exportKeys() {
+            const dataStr = JSON.stringify(keys, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'keys_backup.json';
+            link.click();
+        }
+        
+        // 清空所有密钥
+        function clearAllKeys() {
+            if (confirm('确定要清空所有密钥吗？此操作不可恢复！')) {
+                keys = [];
+                localStorage.setItem('appKeys', JSON.stringify(keys));
+                updateStats();
+                renderKeyList();
+            }
+        }
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>
